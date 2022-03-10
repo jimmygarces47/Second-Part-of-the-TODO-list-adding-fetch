@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 //include images into your bundle
 import rigoImage from "../../img/rigo-baby.jpg";
 
@@ -7,6 +7,60 @@ const Home = () => {
 	const [Tareas, setTareas] = useState("");
 	const [MostrarTareas, setMostrarTareas] = useState([]);
 	const [buttonOver, setButtonOver] = useState(null);
+	useEffect(() => {
+		createUser();
+		getData();
+	}, []);
+	const getData = () => {
+		fetch("https://assets.breatheco.de/apis/fake/todos/user/jimmy4", {
+			method: "GET",
+			headers: { "Content-Type": "application/json" },
+		})
+			.then((resp) => resp.json())
+			.then((data) => setMostrarTareas(data))
+			.catch((err) => console.log(err));
+	};
+	const subirData = (body) => {
+		const settingFetch = {
+			method: "PUT",
+			body: JSON.stringify(body),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		};
+
+		fetch(
+			"https://assets.breatheco.de/apis/fake/todos/user/jimmy4",
+			settingFetch
+		)
+			.then((respuesta) => respuesta.json())
+			.then((response) => {
+				console.log(response);
+			})
+			.catch((err) => console.log(err));
+	};
+
+	const createUser = () => {
+		fetch("https://assets.breatheco.de/apis/fake/todos/user/jimmy4", {
+			method: "POST",
+			body: JSON.stringify([]),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((resp) => {
+				return resp.json();
+			})
+			.then((data) => {
+				//Aquí es donde debe comenzar tu código después de que finalice la búsqueda
+				console.log(data); //esto imprimirá en la consola el objeto exacto recibido del servidor
+			})
+			.catch((error) => {
+				//manejo de errores
+				console.log(error);
+			});
+	};
+
 	const mappingTareas = MostrarTareas.map((item, i) => {
 		return (
 			<div className="container" key={i}>
@@ -14,11 +68,11 @@ const Home = () => {
 					className="list-group-item  "
 					onMouseOver={() => setButtonOver(i)}
 					onMouseLeave={() => setButtonOver(null)}>
-					{item}
+					{item.label}
 					{buttonOver == i ? (
 						<button
 							className="btn btn-warning"
-							onClick={() => eliminatarea(item)}>
+							onClick={() => eliminatarea(item.label)}>
 							X
 						</button>
 					) : (
@@ -30,7 +84,13 @@ const Home = () => {
 	});
 
 	const eliminatarea = (tarea) => {
-		return setMostrarTareas(MostrarTareas.filter((item) => tarea !== item));
+		subirData(MostrarTareas.filter((item) => tarea !== item.label));
+		setMostrarTareas(MostrarTareas.filter((item) => tarea !== item.label));
+	};
+	const haceClickMostarTarea = () => {
+		console.log("hola");
+		setMostrarTareas([...MostrarTareas, { label: Tareas, done: false }]);
+		subirData([...MostrarTareas, { label: Tareas, done: false }]);
 	};
 	return (
 		<div className="container  ">
@@ -49,7 +109,7 @@ const Home = () => {
 					(e) => {
 						Tareas === ""
 							? alert("debe ingresar una tarea")
-							: setMostrarTareas([...MostrarTareas, Tareas]);
+							: haceClickMostarTarea();
 					}
 					//  (
 					// 	Tareas === Tareas
